@@ -676,6 +676,141 @@ section[id] {
 .code-bool { color: #fbbf24; }
 
 /* ==========================================================================
+   Infinite Marquee Carousel (Higginsfield / Figma Aesthetic)
+   ========================================================================== */
+.ticker-section {
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem 0 2rem;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 5;
+}
+
+[data-theme="light"] .ticker-section {
+  background: rgba(255, 255, 255, 0.7);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.ticker-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  user-select: none;
+  opacity: 0.85;
+}
+
+.ticker-hint-arrow {
+  display: inline-block;
+  color: var(--accent-secondary);
+  font-size: 0.85rem;
+  animation: ticker-arrow-float 2s infinite ease-in-out;
+}
+
+@keyframes ticker-arrow-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee-scroll 34s linear infinite;
+}
+
+.ticker-wrap:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ticker-item {
+  font-size: clamp(2.2rem, 5.2vw, 3.8rem);
+  font-style: italic;
+  font-weight: 350;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  padding: 0 1.25rem;
+  transition: color 0.25s ease, transform 0.25s ease;
+  user-select: none;
+  cursor: default;
+}
+
+.ticker-item:hover {
+  color: var(--accent-primary);
+  transform: scale(1.04);
+}
+
+.ticker-dot {
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  color: #818cf8;
+  margin: 0 0.5rem;
+  filter: drop-shadow(0 0 10px rgba(129, 140, 248, 0.7));
+  user-select: none;
+  line-height: 1;
+}
+
+[data-theme="light"] .ticker-dot {
+  color: #6366f1;
+  filter: drop-shadow(0 0 6px rgba(99, 102, 241, 0.45));
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation-duration: 90s;
+  }
+}
+
+@media (max-width: 640px) {
+  .ticker-section {
+    padding: 1.2rem 0 1.5rem;
+  }
+  .ticker-item {
+    padding: 0 0.85rem;
+  }
+  .ticker-dot {
+    margin: 0 0.25rem;
+  }
+}
+
+/* ==========================================================================
    About Section
    ========================================================================== */
 .about-grid {
