@@ -76,6 +76,61 @@
   <main id="main-content">
     <!-- Hero Section -->
     <section class="hero-section wheel-section" id="hero">
+      <!-- iOS Opening Greetings & 3D Word Storm Stage -->
+      <div class="container">
+        <div class="greeting-stage" id="greeting-stage" aria-label="Interactive World Greetings Stage">
+          <!-- Floating 3D Word Storm Clouds (Kinetic Parallax on Scroll) -->
+          <div class="word-storm-container" id="word-storm" aria-hidden="true">
+            <span class="storm-word" data-base-x="-28" data-base-y="-35" data-base-z="-120" data-speed="1.2">Niaje!</span>
+            <span class="storm-word" data-base-x="32" data-base-y="-40" data-base-z="150" data-speed="-1.4">Bonjour</span>
+            <span class="storm-word" data-base-x="-42" data-base-y="10" data-base-z="80" data-speed="1.5">Habari</span>
+            <span class="storm-word" data-base-x="44" data-base-y="-15" data-base-z="-160" data-speed="-1.1">こんにちは</span>
+            <span class="storm-word" data-base-x="-35" data-base-y="45" data-base-z="180" data-speed="1.3">¡Hola!</span>
+            <span class="storm-word" data-base-x="38" data-base-y="40" data-base-z="-90" data-speed="-1.6">Ciao</span>
+            <span class="storm-word" data-base-x="-18" data-base-y="-55" data-base-z="220" data-speed="0.9">Namaste</span>
+            <span class="storm-word" data-base-x="22" data-base-y="55" data-base-z="-140" data-speed="-1.2">Salama</span>
+            <span class="storm-word" data-base-x="-46" data-base-y="-20" data-base-z="110" data-speed="1.7">Guten Tag</span>
+            <span class="storm-word" data-base-x="46" data-base-y="18" data-base-z="190" data-speed="-1.5">Karibu</span>
+            <span class="storm-word" data-base-x="-15" data-base-y="58" data-base-z="-110" data-speed="1.1">Aloha</span>
+            <span class="storm-word" data-base-x="15" data-base-y="-58" data-base-z="130" data-speed="-1.3">Sawa</span>
+          </div>
+
+          <!-- iOS Opening Main Greeting Card -->
+          <div class="ios-greeting-card">
+            <!-- iOS Capsule Language Pill -->
+            <div class="ios-lang-pill" id="ios-lang-pill">
+              <span class="pill-flag" id="greeting-flag">🇰🇪</span>
+              <span class="pill-lang" id="greeting-lang">Swahili • Kenya</span>
+              <span class="pill-dot" aria-hidden="true"></span>
+            </div>
+
+            <!-- Kinetic Greeting Headline (Word Storm Stage) -->
+            <div class="ios-greeting-viewport">
+              <h2 class="ios-greeting-text" id="greeting-text">
+                <span class="char-span" style="--i:0">J</span><span class="char-span" style="--i:1">a</span><span class="char-span" style="--i:2">m</span><span class="char-span" style="--i:3">b</span><span class="char-span" style="--i:4">o</span>
+              </h2>
+            </div>
+
+            <!-- Greeting Tagline / Meaning -->
+            <p class="ios-greeting-sub" id="greeting-sub">Kenya's Warmest Welcome</p>
+
+            <!-- Scroll Storm Interaction Hint -->
+            <div class="ios-scroll-action">
+              <span class="ios-scroll-badge">
+                <svg class="scroll-mouse-icon" width="14" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="2" width="14" height="20" rx="7"></rect>
+                  <line class="scroll-wheel-tick" x1="12" y1="6" x2="12" y2="10"></line>
+                </svg>
+                <span>Scroll down to storm greetings</span>
+              </span>
+            </div>
+
+            <!-- Interactive Language Navigator Dots -->
+            <div class="greeting-dots" id="greeting-dots" role="tablist" aria-label="Greeting Languages Navigator"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="container hero-container">
         <div class="hero-content">
           <div class="status-badge">

@@ -30,7 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // 9. Dynamic Typewriter Effect for Hero
   initTypewriter();
 
-  // 10. Update Current Year
+  // 10. iOS Opening Greetings & 3D Word Storm
+  initGreetingStorm();
+
+  // 11. Update Current Year
   const yearElement = document.getElementById('current-year');
   if (yearElement) {
     yearElement.textContent = new Date().getFullYear();
@@ -632,6 +635,276 @@ function initTypewriter() {
   }
 
   type();
+}
+
+/**
+ * iOS Opening Greetings & 3D Word Storm
+ * - Starts with Kenya ("Jambo") in iOS opening style
+ * - Drives 3D word storm and unique animations based on screen scroll
+ * - Dynamic bidirectional scrubbing and ambient cycle
+ */
+function initGreetingStorm() {
+  const stage = document.getElementById('greeting-stage');
+  const greetingText = document.getElementById('greeting-text');
+  const greetingFlag = document.getElementById('greeting-flag');
+  const greetingLang = document.getElementById('greeting-lang');
+  const greetingSub = document.getElementById('greeting-sub');
+  const card = document.querySelector('.ios-greeting-card');
+  const dotsContainer = document.getElementById('greeting-dots');
+  const stormWords = document.querySelectorAll('.storm-word');
+
+  if (!stage || !greetingText || !greetingFlag || !card) return;
+
+  const GREETINGS = [
+    {
+      id: 'jambo',
+      text: 'Jambo',
+      flag: '🇰🇪',
+      lang: 'Swahili • Kenya',
+      sub: "Kenya's Warmest Welcome",
+      theme: 'theme-jambo'
+    },
+    {
+      id: 'habari',
+      text: 'Habari',
+      flag: '🇰🇪',
+      lang: 'Swahili • East Africa',
+      sub: 'Greetings from Nairobi',
+      theme: 'theme-habari'
+    },
+    {
+      id: 'hello',
+      text: 'Hello',
+      flag: '🌍',
+      lang: 'English • Global',
+      sub: 'The Iconic iOS Opening Classic',
+      theme: 'theme-hello'
+    },
+    {
+      id: 'bonjour',
+      text: 'Bonjour',
+      flag: '🇫🇷',
+      lang: 'French • France',
+      sub: 'Enchanté & Bienvenue',
+      theme: 'theme-bonjour'
+    },
+    {
+      id: 'konnichiwa',
+      text: 'こんにちは',
+      flag: '🇯🇵',
+      lang: 'Japanese • Japan',
+      sub: 'Harmonious greeting (Konnichiwa)',
+      theme: 'theme-konnichiwa'
+    },
+    {
+      id: 'hola',
+      text: '¡Hola!',
+      flag: '🇪🇸',
+      lang: 'Spanish • Global',
+      sub: 'Bienvenidos amigos',
+      theme: 'theme-hola'
+    },
+    {
+      id: 'ciao',
+      text: 'Ciao',
+      flag: '🇮🇹',
+      lang: 'Italian • Italy',
+      sub: 'Sleek & effortless Italian style',
+      theme: 'theme-ciao'
+    },
+    {
+      id: 'karibu',
+      text: 'Karibu',
+      flag: '🇰🇪',
+      lang: 'Swahili • Welcome',
+      sub: "Welcome to Kevin Mutisya's Portfolio",
+      theme: 'theme-karibu'
+    }
+  ];
+
+  let currentIndex = 0;
+  let isTransitioning = false;
+  let lastScrollY = window.scrollY;
+  let scrollVelocity = 0;
+  let autoTimer = null;
+
+  // Initialize interactive language navigation dots
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    GREETINGS.forEach((item, idx) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = `greeting-dot ${idx === 0 ? 'active' : ''}`;
+      dot.setAttribute('aria-label', `View ${item.text} (${item.lang})`);
+      dot.setAttribute('title', `${item.text} (${item.lang})`);
+      dot.addEventListener('click', () => {
+        if (idx !== currentIndex && !isTransitioning) {
+          switchGreeting(idx, idx > currentIndex ? 1 : -1);
+          resetAutoTimer();
+        }
+      });
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function updateDots(index) {
+    if (!dotsContainer) return;
+    const dots = dotsContainer.querySelectorAll('.greeting-dot');
+    dots.forEach((dot, idx) => {
+      dot.classList.toggle('active', idx === index);
+    });
+  }
+
+  function switchGreeting(newIndex, direction = 1) {
+    if (newIndex < 0 || newIndex >= GREETINGS.length || isTransitioning) return;
+    isTransitioning = true;
+    currentIndex = newIndex;
+    const item = GREETINGS[newIndex];
+
+    // Outgoing characters storm dispersion
+    const currentChars = greetingText.querySelectorAll('.char-span');
+    currentChars.forEach((ch, idx) => {
+      const angle = (idx / currentChars.length) * Math.PI * 2;
+      const dist = 70 + Math.random() * 60;
+      const tx = Math.cos(angle) * dist * direction;
+      const ty = Math.sin(angle) * dist;
+      const tz = 80 + Math.random() * 100;
+      const rot = (Math.random() - 0.5) * 60;
+
+      ch.style.setProperty('--tx', `${tx}px`);
+      ch.style.setProperty('--ty', `${ty}px`);
+      ch.style.setProperty('--tz', `${tz}px`);
+      ch.style.setProperty('--rot', `${rot}deg`);
+      ch.classList.add('storm-out');
+    });
+
+    if (greetingSub) {
+      greetingSub.style.opacity = '0';
+      greetingSub.style.transform = 'translateY(6px)';
+    }
+
+    setTimeout(() => {
+      // Update metadata & language capsule
+      greetingFlag.textContent = item.flag;
+      greetingLang.textContent = item.lang;
+      if (greetingSub) {
+        greetingSub.textContent = item.sub;
+        greetingSub.style.opacity = '1';
+        greetingSub.style.transform = 'translateY(0)';
+      }
+
+      // Update card theme class
+      GREETINGS.forEach(g => card.classList.remove(g.theme));
+      card.classList.add(item.theme);
+
+      // Render new incoming characters with storm-in
+      greetingText.innerHTML = '';
+      const chars = Array.from(item.text);
+      chars.forEach((c, idx) => {
+        const span = document.createElement('span');
+        span.className = 'char-span storm-in';
+        span.textContent = c === ' ' ? '\u00A0' : c;
+        span.style.setProperty('--i', idx);
+
+        const itx = (Math.random() - 0.5) * 120 * direction;
+        const ity = (Math.random() - 0.5) * 90;
+        const itz = -100 - Math.random() * 80;
+        const irot = (Math.random() - 0.5) * 50;
+
+        span.style.setProperty('--itx', `${itx}px`);
+        span.style.setProperty('--ity', `${ity}px`);
+        span.style.setProperty('--itz', `${itz}px`);
+        span.style.setProperty('--irot', `${irot}deg`);
+
+        greetingText.appendChild(span);
+      });
+
+      // Force reflow and snap characters in with spring physics
+      void greetingText.offsetWidth;
+      const newChars = greetingText.querySelectorAll('.char-span');
+      newChars.forEach((ch, idx) => {
+        setTimeout(() => {
+          ch.classList.remove('storm-in');
+        }, idx * 28);
+      });
+
+      updateDots(newIndex);
+
+      setTimeout(() => {
+        isTransitioning = false;
+      }, 350 + chars.length * 25);
+    }, 180);
+  }
+
+  // 3D Background Word Storm Parallax
+  function updateWordStorm() {
+    const currentY = window.scrollY;
+    const delta = currentY - lastScrollY;
+    scrollVelocity = delta;
+    lastScrollY = currentY;
+
+    stormWords.forEach((word) => {
+      const bx = parseFloat(word.dataset.baseX) || 0;
+      const by = parseFloat(word.dataset.baseY) || 0;
+      const bz = parseFloat(word.dataset.baseZ) || 0;
+      const speed = parseFloat(word.dataset.speed) || 1;
+
+      // Calculate depth shift based on scroll movement
+      let z = bz + (currentY * speed * 0.42) + (scrollVelocity * speed * 10);
+      // Keep words within a dynamic continuous -280px to +280px 3D depth field
+      z = ((((z + 280) % 560) + 560) % 560) - 280;
+
+      const scale = Math.max(0.3, Math.min(1.8, (z + 360) / 360));
+      const blur = Math.max(0, Math.abs(z) * 0.025 - 1.2);
+      const opacity = Math.max(0.06, Math.min(0.55, 1 - Math.abs(z) / 300));
+
+      word.style.transform = `translate3d(calc(-50% + ${bx}vw), calc(-50% + ${by}vh), ${z}px) scale(${scale})`;
+      word.style.opacity = opacity;
+      word.style.filter = blur > 0.4 ? `blur(${blur}px)` : 'none';
+    });
+  }
+
+  // Scroll listener: Drives both the 3D storm and greeting step progression
+  let scrollStepCounter = 0;
+  let lastStepY = 0;
+
+  window.addEventListener('scroll', () => {
+    updateWordStorm();
+
+    const currentY = window.scrollY;
+    // Only map greetings while near the hero section
+    if (currentY < 650) {
+      const diff = currentY - lastStepY;
+      if (Math.abs(diff) > 55) {
+        if (diff > 0) {
+          // Scrolling down: storm forward
+          const nextIdx = (currentIndex + 1) % GREETINGS.length;
+          switchGreeting(nextIdx, 1);
+        } else {
+          // Scrolling up: storm backward
+          const prevIdx = (currentIndex - 1 + GREETINGS.length) % GREETINGS.length;
+          switchGreeting(prevIdx, -1);
+        }
+        lastStepY = currentY;
+        resetAutoTimer();
+      }
+    }
+  }, { passive: true });
+
+  // Ambient automatic cycle when user is idle at top of screen
+  function resetAutoTimer() {
+    clearInterval(autoTimer);
+    autoTimer = setInterval(() => {
+      if (window.scrollY < 180 && !isTransitioning) {
+        const nextIdx = (currentIndex + 1) % GREETINGS.length;
+        switchGreeting(nextIdx, 1);
+      }
+    }, 4200);
+  }
+
+  // Initial call
+  resetAutoTimer();
+  updateWordStorm();
 }
 
 
