@@ -30,10 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 9. Dynamic Typewriter Effect for Hero
   initTypewriter();
 
-  // 10. Interactive Infinite Marquee Velocity
-  initTickerScroll();
-
-  // 11. Update Current Year
+  // 10. Update Current Year
   const yearElement = document.getElementById('current-year');
   if (yearElement) {
     yearElement.textContent = new Date().getFullYear();
@@ -635,51 +632,6 @@ function initTypewriter() {
   }
 
   type();
-}
-
-/**
- * Interactive Marquee Scroll Velocity (Figma / Award-Winning Site Dynamic Touch)
- * Accelerates the infinite loop slightly when the user scrolls, then smoothly eases back.
- */
-function initTickerScroll() {
-  const track = document.querySelector('.ticker-track');
-  if (!track) return;
-
-  let currentRate = 1;
-  let targetRate = 1;
-  let lastScrollY = window.scrollY;
-  let scrollTimeout = null;
-
-  window.addEventListener('scroll', () => {
-    const currentScrollY = window.scrollY;
-    const delta = Math.abs(currentScrollY - lastScrollY);
-    lastScrollY = currentScrollY;
-
-    // Temporarily increase playback rate based on scroll intensity (capped at 3x)
-    targetRate = 1 + Math.min(delta * 0.05, 2.2);
-
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      targetRate = 1;
-    }, 120);
-  }, { passive: true });
-
-  function updateRate() {
-    currentRate += (targetRate - currentRate) * 0.08;
-
-    try {
-      const animations = track.getAnimations();
-      if (animations && animations.length > 0) {
-        animations[0].playbackRate = currentRate;
-      }
-    } catch (e) {
-      // Graceful fallback for older environments
-    }
-
-    requestAnimationFrame(updateRate);
-  }
-
-  requestAnimationFrame(updateRate);
 }
 
 
