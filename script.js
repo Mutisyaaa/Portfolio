@@ -646,14 +646,12 @@ function initTypewriter() {
 function initGreetingStorm() {
   const overlay = document.getElementById('ios-welcome-overlay');
   const greetingText = document.getElementById('greeting-text');
-  const greetingFlag = document.getElementById('greeting-flag');
-  const greetingLang = document.getElementById('greeting-lang');
   const greetingSub = document.getElementById('greeting-sub');
   const centerWrap = document.getElementById('ios-welcome-center');
   const skipBtn = document.getElementById('ios-skip-btn');
   const stormWords = document.querySelectorAll('.storm-word');
 
-  if (!overlay || !greetingText || !greetingFlag || !centerWrap) return;
+  if (!overlay || !greetingText || !centerWrap) return;
 
   // Respect reduced-motion preference: show Jambo briefly then dismiss
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -798,8 +796,6 @@ function initGreetingStorm() {
     setTimeout(() => {
       if (isDismissed) return;
 
-      greetingFlag.textContent = item.flag;
-      greetingLang.textContent = item.lang;
       if (greetingSub) {
         greetingSub.textContent = item.sub;
         greetingSub.style.opacity = '1';
