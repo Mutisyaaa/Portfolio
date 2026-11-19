@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: kevin-portfolio
+    env: static
+    buildCommand: ""
+    staticPublishPath: .
