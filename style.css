@@ -180,24 +180,6 @@ body {
   animation: orb-float-3 25s infinite ease-in-out alternate;
 }
 
-/* Subtle Animated Blueprint Grid Overlay */
-.mesh-grid {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 80%);
-}
-
-[data-theme="light"] .mesh-grid {
-  background-image: 
-    linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
-}
-
 @keyframes orb-float-1 {
   0% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(120px, 80px) scale(1.15); }
