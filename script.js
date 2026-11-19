@@ -638,138 +638,150 @@ function initTypewriter() {
 }
 
 /**
- * iOS Opening Greetings & 3D Word Storm
- * - Starts with Kenya ("Jambo") in iOS opening style
- * - Drives 3D word storm and unique animations based on screen scroll
- * - Dynamic bidirectional scrubbing and ambient cycle
+ * iPhone-Style Fullscreen Welcome Splash Screen
+ * - Opens with Kenya ("Jambo") and cycles smoothly through world greetings
+ * - Background 3D word storm reacts to wheel / scroll / touch movement
+ * - Auto-dismisses cleanly after the welcome sequence, or immediately on tap/swipe/scroll
  */
 function initGreetingStorm() {
-  const stage = document.getElementById('greeting-stage');
+  const overlay = document.getElementById('ios-welcome-overlay');
   const greetingText = document.getElementById('greeting-text');
   const greetingFlag = document.getElementById('greeting-flag');
   const greetingLang = document.getElementById('greeting-lang');
   const greetingSub = document.getElementById('greeting-sub');
-  const card = document.querySelector('.ios-greeting-card');
-  const dotsContainer = document.getElementById('greeting-dots');
+  const centerWrap = document.getElementById('ios-welcome-center');
+  const skipBtn = document.getElementById('ios-skip-btn');
   const stormWords = document.querySelectorAll('.storm-word');
 
-  if (!stage || !greetingText || !greetingFlag || !card) return;
+  if (!overlay || !greetingText || !greetingFlag || !centerWrap) return;
+
+  // Respect reduced-motion preference: show Jambo briefly then dismiss
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const GREETINGS = [
     {
-      id: 'jambo',
       text: 'Jambo',
       flag: '🇰🇪',
       lang: 'Swahili • Kenya',
       sub: "Kenya's Warmest Welcome",
-      theme: 'theme-jambo'
+      theme: 'theme-jambo',
+      hold: 1100
     },
     {
-      id: 'habari',
-      text: 'Habari',
-      flag: '🇰🇪',
-      lang: 'Swahili • East Africa',
-      sub: 'Greetings from Nairobi',
-      theme: 'theme-habari'
-    },
-    {
-      id: 'hello',
       text: 'Hello',
       flag: '🌍',
       lang: 'English • Global',
-      sub: 'The Iconic iOS Opening Classic',
-      theme: 'theme-hello'
+      sub: 'Welcome',
+      theme: 'theme-hello',
+      hold: 720
     },
     {
-      id: 'bonjour',
       text: 'Bonjour',
       flag: '🇫🇷',
       lang: 'French • France',
-      sub: 'Enchanté & Bienvenue',
-      theme: 'theme-bonjour'
+      sub: 'Enchanté',
+      theme: 'theme-bonjour',
+      hold: 720
     },
     {
-      id: 'konnichiwa',
       text: 'こんにちは',
       flag: '🇯🇵',
       lang: 'Japanese • Japan',
-      sub: 'Harmonious greeting (Konnichiwa)',
-      theme: 'theme-konnichiwa'
+      sub: 'Konnichiwa',
+      theme: 'theme-konnichiwa',
+      hold: 720
     },
     {
-      id: 'hola',
       text: '¡Hola!',
       flag: '🇪🇸',
       lang: 'Spanish • Global',
-      sub: 'Bienvenidos amigos',
-      theme: 'theme-hola'
+      sub: 'Bienvenidos',
+      theme: 'theme-hola',
+      hold: 720
     },
     {
-      id: 'ciao',
-      text: 'Ciao',
-      flag: '🇮🇹',
-      lang: 'Italian • Italy',
-      sub: 'Sleek & effortless Italian style',
-      theme: 'theme-ciao'
-    },
-    {
-      id: 'karibu',
       text: 'Karibu',
       flag: '🇰🇪',
       lang: 'Swahili • Welcome',
-      sub: "Welcome to Kevin Mutisya's Portfolio",
-      theme: 'theme-karibu'
+      sub: "Kevin Mutisya's Portfolio",
+      theme: 'theme-karibu',
+      hold: 950
     }
   ];
 
   let currentIndex = 0;
   let isTransitioning = false;
-  let lastScrollY = window.scrollY;
-  let scrollVelocity = 0;
-  let autoTimer = null;
+  let isDismissed = false;
+  let stormOffset = 0;
+  let sequenceTimer = null;
+  let wheelCooldown = false;
+  let touchStartY = 0;
 
-  // Initialize interactive language navigation dots
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-    GREETINGS.forEach((item, idx) => {
-      const dot = document.createElement('button');
-      dot.type = 'button';
-      dot.className = `greeting-dot ${idx === 0 ? 'active' : ''}`;
-      dot.setAttribute('aria-label', `View ${item.text} (${item.lang})`);
-      dot.setAttribute('title', `${item.text} (${item.lang})`);
-      dot.addEventListener('click', () => {
-        if (idx !== currentIndex && !isTransitioning) {
-          switchGreeting(idx, idx > currentIndex ? 1 : -1);
-          resetAutoTimer();
-        }
-      });
-      dotsContainer.appendChild(dot);
+  // Lock page scroll while welcome screen is showing
+  document.body.classList.add('welcome-active');
+
+  // Position 3D floating background storm words
+  function updateWordStorm(delta = 0) {
+    stormOffset += delta;
+    stormWords.forEach((word) => {
+      const bx = parseFloat(word.dataset.baseX) || 0;
+      const by = parseFloat(word.dataset.baseY) || 0;
+      const bz = parseFloat(word.dataset.baseZ) || 0;
+      const speed = parseFloat(word.dataset.speed) || 1;
+
+      let z = bz + (stormOffset * speed * 0.55);
+      z = ((((z + 280) % 560) + 560) % 560) - 280;
+
+      const scale = Math.max(0.35, Math.min(1.75, (z + 360) / 360));
+      const blur = Math.max(0, Math.abs(z) * 0.024 - 1.2);
+      const opacity = Math.max(0.05, Math.min(0.45, 1 - Math.abs(z) / 300));
+
+      word.style.transform = `translate3d(calc(-50% + ${bx}vw), calc(-50% + ${by}vh), ${z}px) scale(${scale})`;
+      word.style.opacity = opacity;
+      word.style.filter = blur > 0.4 ? `blur(${blur}px)` : 'none';
     });
   }
 
-  function updateDots(index) {
-    if (!dotsContainer) return;
-    const dots = dotsContainer.querySelectorAll('.greeting-dot');
-    dots.forEach((dot, idx) => {
-      dot.classList.toggle('active', idx === index);
-    });
+  function dismissWelcome() {
+    if (isDismissed) return;
+    isDismissed = true;
+    clearTimeout(sequenceTimer);
+
+    document.body.classList.remove('welcome-active');
+    overlay.classList.add('is-dismissing');
+
+    window.removeEventListener('wheel', handleWheel);
+    window.removeEventListener('touchstart', handleTouchStart);
+    window.removeEventListener('touchend', handleTouchEnd);
+    window.removeEventListener('keydown', handleKeyDown);
+
+    setTimeout(() => {
+      overlay.classList.add('is-gone');
+    }, 800);
   }
 
   function switchGreeting(newIndex, direction = 1) {
-    if (newIndex < 0 || newIndex >= GREETINGS.length || isTransitioning) return;
+    if (isDismissed || isTransitioning) return;
+    if (newIndex >= GREETINGS.length) {
+      dismissWelcome();
+      return;
+    }
+
     isTransitioning = true;
     currentIndex = newIndex;
     const item = GREETINGS[newIndex];
 
-    // Outgoing characters storm dispersion
+    // Push background storm forward on every greeting transition
+    updateWordStorm(110 * direction);
+
     const currentChars = greetingText.querySelectorAll('.char-span');
     currentChars.forEach((ch, idx) => {
-      const angle = (idx / currentChars.length) * Math.PI * 2;
-      const dist = 70 + Math.random() * 60;
+      const angle = (idx / Math.max(currentChars.length, 1)) * Math.PI * 2;
+      const dist = 65 + Math.random() * 55;
       const tx = Math.cos(angle) * dist * direction;
       const ty = Math.sin(angle) * dist;
-      const tz = 80 + Math.random() * 100;
-      const rot = (Math.random() - 0.5) * 60;
+      const tz = 80 + Math.random() * 90;
+      const rot = (Math.random() - 0.5) * 50;
 
       ch.style.setProperty('--tx', `${tx}px`);
       ch.style.setProperty('--ty', `${ty}px`);
@@ -784,7 +796,8 @@ function initGreetingStorm() {
     }
 
     setTimeout(() => {
-      // Update metadata & language capsule
+      if (isDismissed) return;
+
       greetingFlag.textContent = item.flag;
       greetingLang.textContent = item.lang;
       if (greetingSub) {
@@ -793,11 +806,9 @@ function initGreetingStorm() {
         greetingSub.style.transform = 'translateY(0)';
       }
 
-      // Update card theme class
-      GREETINGS.forEach(g => card.classList.remove(g.theme));
-      card.classList.add(item.theme);
+      GREETINGS.forEach((g) => centerWrap.classList.remove(g.theme));
+      centerWrap.classList.add(item.theme);
 
-      // Render new incoming characters with storm-in
       greetingText.innerHTML = '';
       const chars = Array.from(item.text);
       chars.forEach((c, idx) => {
@@ -806,10 +817,10 @@ function initGreetingStorm() {
         span.textContent = c === ' ' ? '\u00A0' : c;
         span.style.setProperty('--i', idx);
 
-        const itx = (Math.random() - 0.5) * 120 * direction;
-        const ity = (Math.random() - 0.5) * 90;
+        const itx = (Math.random() - 0.5) * 110 * direction;
+        const ity = (Math.random() - 0.5) * 80;
         const itz = -100 - Math.random() * 80;
-        const irot = (Math.random() - 0.5) * 50;
+        const irot = (Math.random() - 0.5) * 45;
 
         span.style.setProperty('--itx', `${itx}px`);
         span.style.setProperty('--ity', `${ity}px`);
@@ -819,92 +830,91 @@ function initGreetingStorm() {
         greetingText.appendChild(span);
       });
 
-      // Force reflow and snap characters in with spring physics
       void greetingText.offsetWidth;
       const newChars = greetingText.querySelectorAll('.char-span');
       newChars.forEach((ch, idx) => {
         setTimeout(() => {
           ch.classList.remove('storm-in');
-        }, idx * 28);
+        }, idx * 24);
       });
-
-      updateDots(newIndex);
 
       setTimeout(() => {
         isTransitioning = false;
-      }, 350 + chars.length * 25);
-    }, 180);
+        scheduleNext();
+      }, 280 + chars.length * 20);
+    }, 170);
   }
 
-  // 3D Background Word Storm Parallax
-  function updateWordStorm() {
-    const currentY = window.scrollY;
-    const delta = currentY - lastScrollY;
-    scrollVelocity = delta;
-    lastScrollY = currentY;
+  function scheduleNext() {
+    if (isDismissed) return;
+    clearTimeout(sequenceTimer);
+    const holdTime = GREETINGS[currentIndex].hold;
+    sequenceTimer = setTimeout(() => {
+      if (currentIndex + 1 < GREETINGS.length) {
+        switchGreeting(currentIndex + 1, 1);
+      } else {
+        dismissWelcome();
+      }
+    }, holdTime);
+  }
 
-    stormWords.forEach((word) => {
-      const bx = parseFloat(word.dataset.baseX) || 0;
-      const by = parseFloat(word.dataset.baseY) || 0;
-      const bz = parseFloat(word.dataset.baseZ) || 0;
-      const speed = parseFloat(word.dataset.speed) || 1;
+  // Wheel / Scroll interaction: storm faster through greetings & open on end
+  function handleWheel(e) {
+    if (isDismissed) return;
+    updateWordStorm(e.deltaY * 0.45);
 
-      // Calculate depth shift based on scroll movement
-      let z = bz + (currentY * speed * 0.42) + (scrollVelocity * speed * 10);
-      // Keep words within a dynamic continuous -280px to +280px 3D depth field
-      z = ((((z + 280) % 560) + 560) % 560) - 280;
+    if (wheelCooldown || isTransitioning) return;
+    if (e.deltaY > 18) {
+      wheelCooldown = true;
+      clearTimeout(sequenceTimer);
+      switchGreeting(currentIndex + 1, 1);
+      setTimeout(() => { wheelCooldown = false; }, 260);
+    }
+  }
 
-      const scale = Math.max(0.3, Math.min(1.8, (z + 360) / 360));
-      const blur = Math.max(0, Math.abs(z) * 0.025 - 1.2);
-      const opacity = Math.max(0.06, Math.min(0.55, 1 - Math.abs(z) / 300));
+  // Mobile swipe-up gesture (like iPhone unlock)
+  function handleTouchStart(e) {
+    touchStartY = e.touches[0].clientY;
+  }
 
-      word.style.transform = `translate3d(calc(-50% + ${bx}vw), calc(-50% + ${by}vh), ${z}px) scale(${scale})`;
-      word.style.opacity = opacity;
-      word.style.filter = blur > 0.4 ? `blur(${blur}px)` : 'none';
+  function handleTouchEnd(e) {
+    if (isDismissed) return;
+    const deltaY = touchStartY - e.changedTouches[0].clientY;
+    if (deltaY > 40) {
+      dismissWelcome();
+    }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+      dismissWelcome();
+    }
+  }
+
+  // Tap/click bottom swipe bar or anywhere on overlay to enter immediately
+  if (skipBtn) {
+    skipBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissWelcome();
     });
   }
+  overlay.addEventListener('click', () => {
+    dismissWelcome();
+  });
 
-  // Scroll listener: Drives both the 3D storm and greeting step progression
-  let scrollStepCounter = 0;
-  let lastStepY = 0;
+  window.addEventListener('wheel', handleWheel, { passive: true });
+  window.addEventListener('touchstart', handleTouchStart, { passive: true });
+  window.addEventListener('touchend', handleTouchEnd, { passive: true });
+  window.addEventListener('keydown', handleKeyDown);
 
-  window.addEventListener('scroll', () => {
-    updateWordStorm();
+  // Initialize storm positions
+  updateWordStorm(0);
 
-    const currentY = window.scrollY;
-    // Only map greetings while near the hero section
-    if (currentY < 650) {
-      const diff = currentY - lastStepY;
-      if (Math.abs(diff) > 55) {
-        if (diff > 0) {
-          // Scrolling down: storm forward
-          const nextIdx = (currentIndex + 1) % GREETINGS.length;
-          switchGreeting(nextIdx, 1);
-        } else {
-          // Scrolling up: storm backward
-          const prevIdx = (currentIndex - 1 + GREETINGS.length) % GREETINGS.length;
-          switchGreeting(prevIdx, -1);
-        }
-        lastStepY = currentY;
-        resetAutoTimer();
-      }
-    }
-  }, { passive: true });
-
-  // Ambient automatic cycle when user is idle at top of screen
-  function resetAutoTimer() {
-    clearInterval(autoTimer);
-    autoTimer = setInterval(() => {
-      if (window.scrollY < 180 && !isTransitioning) {
-        const nextIdx = (currentIndex + 1) % GREETINGS.length;
-        switchGreeting(nextIdx, 1);
-      }
-    }, 4200);
+  if (prefersReducedMotion) {
+    sequenceTimer = setTimeout(dismissWelcome, 1400);
+  } else {
+    scheduleNext();
   }
-
-  // Initial call
-  resetAutoTimer();
-  updateWordStorm();
 }
 
 
